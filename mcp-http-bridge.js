@@ -209,3 +209,6 @@ log(`Server: ${SERVER_URL}`);
 log(`API Key: ${HTTP_AUTHORIZATION ? 'Set' : '(not set)'}`);
 log(`Proffix User: ${PROFFIX_USERNAME || '(not set)'}`);
 log(`Ready for JSON-RPC requests via stdio...`);
+
+// Keep the process alive by preventing stdin from closing
+process.stdin.resume();
