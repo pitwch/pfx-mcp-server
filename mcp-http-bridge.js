@@ -10,11 +10,12 @@
  *   node mcp-http-bridge.js <server-url>
  * 
  * Environment variables for authentication:
- *   PROFFIX_USERNAME
- *   PROFFIX_PASSWORD
- *   PROFFIX_URL
- *   PROFFIX_PORT
- *   PROFFIX_DATABASE
+ *   HTTP_AUTHORIZATION  - API Key (e.g., "Bearer pfx_abc123...")
+ *   PROFFIX_USERNAME    - Proffix username
+ *   PROFFIX_PASSWORD    - Proffix password
+ *   PROFFIX_URL         - Proffix server URL
+ *   PROFFIX_PORT        - Proffix server port
+ *   PROFFIX_DATABASE    - Proffix database name
  */
 
 const https = require('https');
@@ -30,6 +31,9 @@ const PROFFIX_PASSWORD = process.env.PROFFIX_PASSWORD || '';
 const PROFFIX_URL = process.env.PROFFIX_URL || '';
 const PROFFIX_PORT = process.env.PROFFIX_PORT || '';
 const PROFFIX_DATABASE = process.env.PROFFIX_DATABASE || '';
+
+// API Key from environment (Authorization header)
+const HTTP_AUTHORIZATION = process.env.HTTP_AUTHORIZATION || '';
 
 // Parse server URL
 const serverUrl = new URL(SERVER_URL);
@@ -57,20 +61,27 @@ function sendResponse(response) {
 function makeRequest(jsonRpcRequest, callback) {
   const postData = JSON.stringify(jsonRpcRequest);
   
+  const headers = {
+    'Content-Type': 'application/json',
+    'Content-Length': Buffer.byteLength(postData),
+    'X-Proffix-Username': PROFFIX_USERNAME,
+    'X-Proffix-Password': PROFFIX_PASSWORD,
+    'X-Proffix-Url': PROFFIX_URL,
+    'X-Proffix-Port': PROFFIX_PORT,
+    'X-Proffix-Database': PROFFIX_DATABASE
+  };
+
+  // Add Authorization header if provided
+  if (HTTP_AUTHORIZATION) {
+    headers['Authorization'] = HTTP_AUTHORIZATION;
+  }
+
   const options = {
     hostname: serverUrl.hostname,
     port: serverUrl.port || (isHttps ? 443 : 80),
     path: serverUrl.pathname,
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData),
-      'X-Proffix-Username': PROFFIX_USERNAME,
-      'X-Proffix-Password': PROFFIX_PASSWORD,
-      'X-Proffix-Url': PROFFIX_URL,
-      'X-Proffix-Port': PROFFIX_PORT,
-      'X-Proffix-Database': PROFFIX_DATABASE
-    }
+    headers: headers
   };
 
   const req = httpModule.request(options, (res) => {
@@ -195,5 +206,6 @@ process.on('SIGTERM', () => {
 
 log(`MCP HTTP Bridge started`);
 log(`Server: ${SERVER_URL}`);
+log(`API Key: ${HTTP_AUTHORIZATION ? 'Set' : '(not set)'}`);
 log(`Proffix User: ${PROFFIX_USERNAME || '(not set)'}`);
 log(`Ready for JSON-RPC requests via stdio...`);
