@@ -38,7 +38,7 @@
         "https://mcp.pfx.ch/api/server"
       ],
       "env": {
-        "HTTP_AUTHORIZATION": "${user_config.api_key}",
+        "HTTP_AUTHORIZATION": "Bearer ${user_config.api_key}",
         "PROFFIX_USERNAME": "${user_config.proffix_username}",
         "PROFFIX_PASSWORD": "${user_config.proffix_password}",
         "PROFFIX_URL": "${user_config.proffix_url}",
@@ -51,10 +51,10 @@
     "api_key": {
       "type": "string",
       "title": "API Key",
-      "description": "Your pfx MCP Server API Key (get it free at https://mcp.pfx.ch/request-api-key.html)",
+      "description": "Your pfx MCP Server API Key - just the key without 'Bearer' prefix (get it free at https://mcp.pfx.ch/request-api-key.html)",
       "sensitive": true,
       "required": true,
-      "default": "Bearer "
+      "placeholder": "pfx_..."
     },
     "proffix_username": {
       "type": "string",
