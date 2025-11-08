@@ -1,4 +1,4 @@
-name: Build and Release MCPB
+name: Release and Publish
 
 on:
   push:
@@ -16,10 +16,11 @@ on:
         type: string
 
 jobs:
-  build-and-release:
+  release-and-publish:
     runs-on: ubuntu-latest
     
     permissions:
+      id-token: write
       contents: write
       
     steps:
@@ -148,3 +149,16 @@ jobs:
           name: pfx-mcp-server-mcpb
           path: dist/pfx-mcp-server.mcpb
           retention-days: 90
+          
+      - name: Install MCP Publisher
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          
+      - name: Login to MCP Registry
+        if: steps.check_tag.outputs.exists == 'false'
+        run: ./mcp-publisher login dns --domain pfx.ch --private-key ${{ secrets.MCP_PRIVATE_KEY }}
+        
+      - name: Publish to MCP Registry
+        if: steps.check_tag.outputs.exists == 'false'
+        run: ./mcp-publisher publish
