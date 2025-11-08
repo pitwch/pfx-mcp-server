@@ -21,6 +21,9 @@
 const https = require('https');
 const http = require('http');
 const readline = require('readline');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 // Configuration
 const SERVER_URL = process.argv[2] || process.env.MCP_SERVER_URL || 'https://mcp.pfx.ch/api/server';
@@ -35,6 +38,10 @@ const PROFFIX_DATABASE = process.env.PROFFIX_DATABASE || '';
 // API Key from environment (Authorization header)
 const HTTP_AUTHORIZATION = process.env.HTTP_AUTHORIZATION || '';
 
+// Setup file logging
+const LOG_FILE = path.join(os.tmpdir(), 'pfx-mcp-bridge.log');
+const logStream = fs.createWriteStream(LOG_FILE, { flags: 'a' });
+
 // Parse server URL
 const serverUrl = new URL(SERVER_URL);
 const isHttps = serverUrl.protocol === 'https:';
@@ -47,14 +54,22 @@ const rl = readline.createInterface({
   terminal: false
 });
 
-// Log to stderr (stdout is reserved for JSON-RPC)
-function log(message) {
-  console.error(`[MCP Bridge] ${message}`);
+// Log to stderr (stdout is reserved for JSON-RPC) and to file
+function log(message, level = 'info') {
+  const timestamp = new Date().toISOString();
+  const logMsg = `${timestamp} [MCP Bridge] [${level}] ${message}`;
+  console.error(logMsg);
+  logStream.write(logMsg + '\n');
 }
 
 // Send JSON-RPC response to stdout
 function sendResponse(response) {
-  process.stdout.write(JSON.stringify(response) + '\n');
+  try {
+    const responseStr = JSON.stringify(response) + '\n';
+    process.stdout.write(responseStr);
+  } catch (err) {
+    log(`Error sending response: ${err.message}`, 'error');
+  }
 }
 
 // Make HTTP request to MCP server
@@ -137,6 +152,8 @@ function makeRequest(jsonRpcRequest, callback) {
 rl.on('line', (line) => {
   if (!line.trim()) return; // Skip empty lines
   
+  messageCount++;
+  
   let request;
   try {
     request = JSON.parse(line);
@@ -155,16 +172,17 @@ rl.on('line', (line) => {
 
   // Check if this is a notification (no id field)
   const isNotification = request.id === undefined || request.id === null;
-  
-  log(`Received ${isNotification ? 'notification' : 'request'}: ${request.method || 'unknown'} (id: ${request.id})`);
+
+  // Handle notifications/initialized specially - don't forward to server
+  if (isNotification && request.method === 'notifications/initialized') {
+    return;
+  }
 
   // Notifications don't get responses - just forward and ignore
   if (isNotification) {
-    makeRequest(request, (err, response) => {
+    makeRequest(request, (err) => {
       if (err) {
-        log(`Notification error (ignored): ${err.message}`);
-      } else {
-        log(`Notification processed: ${request.method}`);
+        log(`Notification error: ${err.message}`, 'error');
       }
     });
     return;
@@ -173,7 +191,7 @@ rl.on('line', (line) => {
   // Forward request to HTTP MCP server
   makeRequest(request, (err, response) => {
     if (err) {
-      log(`Error: ${err.message}`);
+      log(`Request error for ${request.method}: ${err.message}`, 'error');
       sendResponse({
         jsonrpc: '2.0',
         id: request.id,
@@ -187,7 +205,25 @@ rl.on('line', (line) => {
       if (response.id === undefined || response.id === null) {
         response.id = request.id;
       }
-      log(`Sending response for: ${request.method} (id: ${response.id})`);
+      
+      // Upgrade protocol version for initialize response to match client expectations
+      if (request.method === 'initialize' && response.result && response.result.protocolVersion) {
+        const clientVersion = request.params?.protocolVersion;
+        const serverVersion = response.result.protocolVersion;
+        
+        // If client expects newer version, upgrade the response
+        if (clientVersion && clientVersion > serverVersion) {
+          response.result.protocolVersion = clientVersion;
+          
+          // Normalize capabilities for newer protocol versions
+          if (response.result.capabilities) {
+            const caps = response.result.capabilities;
+            if (caps.prompts === true) caps.prompts = {};
+            if (caps.tools === true) caps.tools = {};
+          }
+        }
+      }
+      
       sendResponse(response);
     }
   });
@@ -195,20 +231,38 @@ rl.on('line', (line) => {
 
 // Handle process termination
 process.on('SIGINT', () => {
-  log('Bridge shutting down...');
+  logStream.end();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  log('Bridge shutting down...');
+  logStream.end();
   process.exit(0);
+});
+
+process.stdin.on('end', () => {
+  logStream.end();
+  process.exit(0);
+});
+
+// Handle unexpected errors
+process.on('uncaughtException', (err) => {
+  log(`Uncaught exception: ${err.message}`, 'error');
+  log(err.stack, 'error');
+  logStream.end();
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  log(`Unhandled rejection: ${reason}`, 'error');
+  logStream.end();
+  process.exit(1);
 });
 
 log(`MCP HTTP Bridge started`);
 log(`Server: ${SERVER_URL}`);
-log(`API Key: ${HTTP_AUTHORIZATION ? 'Set' : '(not set)'}`);
-log(`Proffix User: ${PROFFIX_USERNAME || '(not set)'}`);
-log(`Ready for JSON-RPC requests via stdio...`);
+log(`Log file: ${LOG_FILE}`);
 
-// Keep the process alive by preventing stdin from closing
+// Keep the process alive
 process.stdin.resume();
+let messageCount = 0;
