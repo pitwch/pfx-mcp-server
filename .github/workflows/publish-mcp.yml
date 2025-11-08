@@ -2,18 +2,24 @@ name: Publish to MCP Registry
 
 on:
   push:
-    tags: ["v*"]  # Triggers on version tags like v1.0.0
+    branches:
+      - main
+    paths:
+      - 'server.json'
+      - '.github/workflows/publish-mcp.yml'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC authentication
-      contents: read
+      id-token: write
+      contents: write  # Need write permission to create tags
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch all history for tags
 
       - name: Validate server.json
         run: |
@@ -22,6 +28,32 @@ jobs:
             exit 1
           fi
           echo "server.json found and ready for publishing"
+
+      - name: Get version from server.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version' server.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version from server.json: $VERSION"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.get_version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.get_version.outputs.version }} does not exist"
+          fi
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release v${{ steps.get_version.outputs.version }}"
+          git push origin "v${{ steps.get_version.outputs.version }}"
 
       - name: Install MCP Publisher
         run: |
