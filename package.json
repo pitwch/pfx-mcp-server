@@ -1,6 +1,6 @@
 {
   "name": "pfx-mcp-server",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "MCP Server for Forterro Proffix Px5 ERP",
   "main": "mcp-http-bridge.js",
   "bin": {
@@ -16,7 +16,7 @@
     "forterro",
     "px5"
   ],
-  "author": "pfx.ch",
+  "author": "Pedrett IT+Web AG",
   "license": "MIT",
   "repository": {
     "type": "git",

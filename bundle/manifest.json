@@ -1,10 +1,11 @@
 {
-  "name": "ch.pfx/mcp-server",
+  "manifest_version": "0.3",
+  "name": "pfx-mcp-server",
   "display_name": "Proffix Px5 MCP Server",
-  "description": "Connect AI assistants to your Forterro Proffix Px5 ERP system with 120+ endpoints via MCP protocol",
-  "version": "1.0.5",
-  "publisher": {
-    "name": "pfx.ch",
+  "description": "Connect AI assistants to your Forterro Proffix Px5 ERP system via MCP protocol",
+  "version": "1.0.8",
+  "author": {
+    "name": "Pedrett IT+Web AG",
     "url": "https://mcp.pfx.ch"
   },
   "homepage": "https://mcp.pfx.ch",
@@ -13,12 +14,7 @@
     "url": "https://github.com/pitwch/pfx-mcp-server"
   },
   "license": "MIT",
-  "categories": [
-    "business",
-    "erp",
-    "crm"
-  ],
-  "tags": [
+  "keywords": [
     "erp",
     "proffix",
     "forterro",
@@ -30,52 +26,67 @@
   "server": {
     "type": "node",
     "entry_point": "mcp-http-bridge.js",
-    "args": [
-      "https://mcp.pfx.ch/api/server"
-    ]
-  },
-  "mcp_config": {
-    "env": {
-      "HTTP_AUTHORIZATION": {
-        "description": "API Key for pfx MCP Server (get it from https://mcp.pfx.ch/request-api-key.html)",
-        "required": true,
-        "secret": true,
-        "default": "Bearer "
-      },
-      "PROFFIX_USERNAME": {
-        "description": "Your Proffix username",
-        "required": true,
-        "secret": false
-      },
-      "PROFFIX_PASSWORD": {
-        "description": "Your Proffix password",
-        "required": true,
-        "secret": true
-      },
-      "PROFFIX_URL": {
-        "description": "Your Proffix server URL (e.g., https://your-proffix.com)",
-        "required": true,
-        "secret": false
-      },
-      "PROFFIX_PORT": {
-        "description": "Proffix REST API port",
-        "required": true,
-        "secret": false,
-        "default": "11011"
-      },
-      "PROFFIX_DATABASE": {
-        "description": "Your Proffix database name",
-        "required": true,
-        "secret": false
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/mcp-http-bridge.js",
+        "https://mcp.pfx.ch/api/server"
+      ],
+      "env": {
+        "HTTP_AUTHORIZATION": "${user_config.api_key}",
+        "PROFFIX_USERNAME": "${user_config.proffix_username}",
+        "PROFFIX_PASSWORD": "${user_config.proffix_password}",
+        "PROFFIX_URL": "${user_config.proffix_url}",
+        "PROFFIX_PORT": "${user_config.proffix_port}",
+        "PROFFIX_DATABASE": "${user_config.proffix_database}"
       }
     }
   },
-  "capabilities": {
-    "tools": true,
-    "prompts": true,
-    "resources": false
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "API Key",
+      "description": "Your pfx MCP Server API Key (get it from https://mcp.pfx.ch/request-api-key.html)",
+      "sensitive": true,
+      "required": true,
+      "default": "Bearer "
+    },
+    "proffix_username": {
+      "type": "string",
+      "title": "Proffix Username",
+      "description": "Your Proffix username",
+      "required": true
+    },
+    "proffix_password": {
+      "type": "string",
+      "title": "Proffix Password",
+      "description": "Your Proffix password",
+      "sensitive": true,
+      "required": true
+    },
+    "proffix_url": {
+      "type": "string",
+      "title": "Proffix Server URL",
+      "description": "Your Proffix server URL (e.g., https://your-proffix.com)",
+      "required": true
+    },
+    "proffix_port": {
+      "type": "string",
+      "title": "Proffix API Port",
+      "description": "Proffix REST API port",
+      "required": true,
+      "default": "11011"
+    },
+    "proffix_database": {
+      "type": "string",
+      "title": "Proffix Database",
+      "description": "Your Proffix database name",
+      "required": true
+    }
   },
-  "requirements": {
-    "node": ">=18.0.0"
+  "compatibility": {
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
   }
 }
