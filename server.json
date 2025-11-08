@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.pitwch/pfx-mcp-server",
+  "description": "MCP Server für Forterro Proffix Px5 ERP",
+  "status": "active",
+  "homepage": "https://mcp.pfx.ch",
+  "repository": {
+    "url": "https://github.com/pitwch/pfx-mcp-server",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.pfx.ch/api/server"
+    }
+  ],
+  "capabilities": {
+    "tools": true,
+    "prompts": true
+  },
+  "tags": [
+    "erp",
+    "pfx",
+    "proffix",
+    "forterro",
+    "business",
+    "crm",
+    "accounting",
+    "px5"
+  ]
+}
