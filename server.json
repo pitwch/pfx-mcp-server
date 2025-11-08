@@ -7,7 +7,7 @@
     "url": "https://github.com/pitwch/pfx-mcp-server",
     "source": "github"
   },
-  "version": "1.0.6",
+  "version": "1.0.7",
   "remotes": [
     {
       "type": "streamable-http",
