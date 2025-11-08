@@ -1,0 +1,112 @@
+name: Build and Release MCPB
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.5)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "TAG=v${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Update version in files
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          
+          # Update package.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+          
+          # Update bundle/manifest.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" bundle/manifest.json
+          
+          # Update server.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" server.json
+          
+          echo "Updated version to $VERSION"
+          
+      - name: Build MCPB bundle
+        run: |
+          npm run build:mcpb
+          
+      - name: Verify MCPB file
+        run: |
+          if [ ! -f dist/pfx-mcp-server.mcpb ]; then
+            echo "Error: MCPB file not created"
+            exit 1
+          fi
+          
+          FILE_SIZE=$(du -h dist/pfx-mcp-server.mcpb | cut -f1)
+          echo "MCPB file size: $FILE_SIZE"
+          
+          # List contents of MCPB (it's a ZIP file)
+          unzip -l dist/pfx-mcp-server.mcpb
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: Release ${{ steps.version.outputs.TAG }}
+          body: |
+            ## Proffix Px5 MCP Server ${{ steps.version.outputs.VERSION }}
+            
+            ### 📦 Installation Options
+            
+            #### Option 1: One-Click Installation (Recommended)
+            1. Download `pfx-mcp-server.mcpb` below
+            2. Double-click the file to install in Claude Desktop
+            3. Configure your Proffix credentials in the UI
+            
+            #### Option 2: Manual Installation
+            See [README.md](https://github.com/pitwch/pfx-mcp-server#readme) for manual setup instructions.
+            
+            ### 🔗 Links
+            - **Documentation**: https://mcp.pfx.ch
+            - **API Key Request**: https://mcp.pfx.ch/request-api-key.html
+            - **Server Status**: https://mcp.pfx.ch/api/version
+            
+            ### 📋 What's Included
+            - MCP HTTP Bridge script
+            - Pre-configured manifest for Claude Desktop
+            - Support for 120+ Proffix Px5 endpoints
+          files: |
+            dist/pfx-mcp-server.mcpb
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pfx-mcp-server-mcpb
+          path: dist/pfx-mcp-server.mcpb
+          retention-days: 90

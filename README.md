@@ -14,15 +14,40 @@ Verbinde AI-Assistenten (Claude, ChatGPT, Gemini) mit deinem Proffix Px5 über s
 
 ## 🚀 Quick Start
 
-### 1. API Key anfordern
-Kostenlosen API Key anfordern: [https://mcp.pfx.ch/request-api-key.html](https://mcp.pfx.ch/request-api-key.html)
+### Option 1: One-Click Installation (Empfohlen) 🎯
 
-### 2. MCP Bridge Script herunterladen
-Download: [mcp-http-bridge.js](https://mcp.pfx.ch/bridge/mcp-http-bridge.txt) (umbenennen zu `.js`)
+**Für Claude Desktop Benutzer - Einfachste Installation!**
 
-### 3. Claude Desktop konfigurieren
-`%APPDATA%\Claude\claude_desktop_config.json` (Windows) oder  
-`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+1. **API Key anfordern**  
+   Kostenlosen API Key anfordern: [https://mcp.pfx.ch/request-api-key.html](https://mcp.pfx.ch/request-api-key.html)
+
+2. **MCPB Bundle herunterladen**  
+   Download: [pfx-mcp-server.mcpb](https://github.com/pitwch/pfx-mcp-server/releases/latest/download/pfx-mcp-server.mcpb)
+
+3. **Installieren**  
+   - Doppelklick auf die `.mcpb` Datei
+   - Claude Desktop öffnet automatisch den Installations-Dialog
+   - Proffix Credentials eingeben (API Key, Username, Password, URL, Port, Database)
+   - Fertig! ✅
+
+4. **Claude Desktop neu starten**  
+   Frage Claude: *"Zeige mir alle Adressen aus Proffix"*
+
+---
+
+### Option 2: Manuelle Installation (Fortgeschritten) ⚙️
+
+**Für andere MCP-Clients oder erweiterte Konfiguration**
+
+1. **API Key anfordern**  
+   Kostenlosen API Key anfordern: [https://mcp.pfx.ch/request-api-key.html](https://mcp.pfx.ch/request-api-key.html)
+
+2. **MCP Bridge Script herunterladen**  
+   Download: [mcp-http-bridge.js](https://mcp.pfx.ch/bridge/mcp-http-bridge.txt) (umbenennen zu `.js`)
+
+3. **Claude Desktop konfigurieren**  
+   `%APPDATA%\Claude\claude_desktop_config.json` (Windows) oder  
+   `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
 
 ```json
 {
@@ -43,8 +68,8 @@ Download: [mcp-http-bridge.js](https://mcp.pfx.ch/bridge/mcp-http-bridge.txt) (u
 }
 ```
 
-### 4. Claude Desktop neu starten
-Frage Claude: *"Zeige mir alle Adressen aus Proffix"*
+4. **Claude Desktop neu starten**  
+   Frage Claude: *"Zeige mir alle Adressen aus Proffix"*
 
 ## 📚 Dokumentation
 
