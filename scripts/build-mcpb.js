@@ -26,6 +26,11 @@ const BUNDLE_FILES = [
   'icon.png'
 ];
 
+// Directories to copy from bundle directory
+const BUNDLE_DIRS = [
+  'locales'
+];
+
 console.log('🔨 Building MCPB bundle...');
 
 // Create dist directory if it doesn't exist
@@ -53,6 +58,19 @@ try {
       console.log(`✓ Copied ${file}`);
     } else {
       console.warn(`⚠ Warning: ${file} not found in bundle/, skipping`);
+    }
+  }
+
+  // Copy directories from bundle directory
+  for (const dir of BUNDLE_DIRS) {
+    const src = path.join(BUNDLE_DIR, dir);
+    const dest = path.join(BUILD_DIR, dir);
+    
+    if (fs.existsSync(src)) {
+      fs.cpSync(src, dest, { recursive: true });
+      console.log(`✓ Copied ${dir}/ directory`);
+    } else {
+      console.warn(`⚠ Warning: ${dir}/ not found in bundle/, skipping`);
     }
   }
 
