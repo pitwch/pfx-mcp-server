@@ -1,14 +1,15 @@
 # pfx MCP Server
 
+**🇩🇪 Deutsch | [🇬🇧 English](README.en.md)**
+
 **Model Context Protocol Server für Forterro Proffix Px5 ERP**
 
 Verbinde AI-Assistenten (Claude, ChatGPT, Gemini) mit deinem Proffix Px5 über standardisiertes MCP-Protokoll.
 
 ## 🌟 Features
 
-- **120+ Proffix Endpoints** direkt via MCP Tools
+- **Proffix Funktionen** direkt via MCP Tools
 - **JSON-RPC 2.0 Transport** für alle MCP-Clients
-- **Fuzzy Search** über alle verfügbaren Endpoints
 - **Sichere Authentifizierung** (API Key + Proffix Credentials)
 - **Zero Installation** - Remote Server, keine lokale Installation nötig
 

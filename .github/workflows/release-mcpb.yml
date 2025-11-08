@@ -2,8 +2,12 @@ name: Build and Release MCPB
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'server.json'
+      - 'bundle/manifest.json'
+      - 'package.json'
   workflow_dispatch:
     inputs:
       version:
@@ -21,43 +25,64 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           
-      - name: Get version
+      - name: Get version from server.json
         id: version
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "VERSION=${{ inputs.version }}" >> $GITHUB_OUTPUT
-            echo "TAG=v${{ inputs.version }}" >> $GITHUB_OUTPUT
+            VERSION="${{ inputs.version }}"
           else
-            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            VERSION=$(jq -r '.version' server.json)
           fi
           
-      - name: Update version in files
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          TAG="v${{ steps.version.outputs.VERSION }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag $TAG already exists, skipping release"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag $TAG does not exist, will create release"
+          fi
+          
+      - name: Stop if tag exists
+        if: steps.check_tag.outputs.exists == 'true'
+        run: |
+          echo "::notice::Tag v${{ steps.version.outputs.VERSION }} already exists. Skipping release."
+          exit 0
+          
+      - name: Sync version across files
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           
-          # Update package.json
+          # Ensure all files have the same version
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
-          
-          # Update bundle/manifest.json
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" bundle/manifest.json
-          
-          # Update server.json
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" server.json
           
-          echo "Updated version to $VERSION"
+          echo "Synced version to $VERSION across all files"
           
       - name: Build MCPB bundle
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           npm run build:mcpb
           
       - name: Verify MCPB file
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           if [ ! -f dist/pfx-mcp-server.mcpb ]; then
             echo "Error: MCPB file not created"
@@ -70,7 +95,16 @@ jobs:
           # List contents of MCPB (it's a ZIP file)
           unzip -l dist/pfx-mcp-server.mcpb
           
+      - name: Create Git Tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.TAG }}" -m "Release ${{ steps.version.outputs.TAG }}"
+          git push origin "${{ steps.version.outputs.TAG }}"
+          
       - name: Create Release
+        if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.TAG }}
@@ -105,6 +139,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Upload artifact
+        if: steps.check_tag.outputs.exists == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: pfx-mcp-server-mcpb
