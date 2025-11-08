@@ -8,9 +8,8 @@ Connect AI assistants (Claude, ChatGPT, Gemini) to your Proffix Px5 via standard
 
 ## 🌟 Features
 
-- **120+ Proffix Endpoints** directly via MCP Tools
+- **Proffix Functionality** directly via MCP Tools
 - **JSON-RPC 2.0 Transport** for all MCP clients
-- **Fuzzy Search** across all available endpoints
 - **Secure Authentication** (API Key + Proffix Credentials)
 - **Zero Installation** - Remote server, no local installation needed
 
