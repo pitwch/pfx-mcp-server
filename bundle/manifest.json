@@ -7,7 +7,7 @@
   "version": "1.0.9",
   "icon": "icon.png",
   "author": {
-    "name": "Pedrett IT+Web AG",
+    "name": "pfx.ch",
     "url": "https://mcp.pfx.ch"
   },
   "homepage": "https://mcp.pfx.ch",
@@ -91,7 +91,7 @@
   },
   "localization": {
     "resources": "locales/${locale}.json",
-    "default_locale": "en-US"
+    "default_locale": "de-DE"
   },
   "compatibility": {
     "runtimes": {
