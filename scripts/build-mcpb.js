@@ -20,6 +20,12 @@ const FILES_TO_BUNDLE = [
   'LICENSE'
 ];
 
+// Files to copy from bundle directory
+const BUNDLE_FILES = [
+  'manifest.json',
+  'icon.png'
+];
+
 console.log('🔨 Building MCPB bundle...');
 
 // Create dist directory if it doesn't exist
@@ -37,11 +43,18 @@ fs.mkdirSync(BUILD_DIR, { recursive: true });
 console.log('✓ Created temporary build directory');
 
 try {
-  // Copy manifest.json
-  const manifestSrc = path.join(BUNDLE_DIR, 'manifest.json');
-  const manifestDest = path.join(BUILD_DIR, 'manifest.json');
-  fs.copyFileSync(manifestSrc, manifestDest);
-  console.log('✓ Copied manifest.json');
+  // Copy files from bundle directory
+  for (const file of BUNDLE_FILES) {
+    const src = path.join(BUNDLE_DIR, file);
+    const dest = path.join(BUILD_DIR, file);
+    
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, dest);
+      console.log(`✓ Copied ${file}`);
+    } else {
+      console.warn(`⚠ Warning: ${file} not found in bundle/, skipping`);
+    }
+  }
 
   // Copy bridge script and other files
   for (const file of FILES_TO_BUNDLE) {

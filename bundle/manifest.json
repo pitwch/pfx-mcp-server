@@ -2,8 +2,10 @@
   "manifest_version": "0.3",
   "name": "pfx-mcp-server",
   "display_name": "Proffix Px5 MCP Server",
-  "description": "Connect AI assistants to your Forterro Proffix Px5 ERP system via MCP protocol",
+  "description": "Verbinde KI-Assistenten mit deinem Forterro Proffix Px5 ERP-System über das MCP-Protokoll",
+  "long_description": "Der Proffix Px5 MCP Server ermöglicht es KI-Assistenten wie Claude, direkt mit deinem Proffix ERP-System zu kommunizieren. Greife auf Adressen, Artikel, Aufträge und weitere Proffix-Funktionen zu, ohne das ERP-System zu verlassen. Alle Daten werden sicher über deine eigene Proffix REST API übertragen.",
   "version": "1.0.8",
+  "icon": "icon.png",
   "author": {
     "name": "Pedrett IT+Web AG",
     "url": "https://mcp.pfx.ch"
@@ -14,6 +16,9 @@
     "url": "https://github.com/pitwch/pfx-mcp-server"
   },
   "license": "MIT",
+  "privacy_policies": [
+    "https://mcp.pfx.ch/privacy"
+  ],
   "keywords": [
     "erp",
     "proffix",
@@ -46,43 +51,46 @@
     "api_key": {
       "type": "string",
       "title": "API Key",
-      "description": "Your pfx MCP Server API Key (get it from https://mcp.pfx.ch/request-api-key.html)",
+      "description": "Dein pfx MCP Server API Key (kostenlos unter https://mcp.pfx.ch/request-api-key.html)",
       "sensitive": true,
       "required": true,
       "default": "Bearer "
     },
     "proffix_username": {
       "type": "string",
-      "title": "Proffix Username",
-      "description": "Your Proffix username",
+      "title": "Proffix Benutzername",
+      "description": "Dein Proffix Benutzername",
       "required": true
     },
     "proffix_password": {
       "type": "string",
-      "title": "Proffix Password",
-      "description": "Your Proffix password",
+      "title": "Proffix Passwort",
+      "description": "Dein Proffix Passwort",
       "sensitive": true,
       "required": true
     },
     "proffix_url": {
       "type": "string",
       "title": "Proffix Server URL",
-      "description": "Your Proffix server URL (e.g., https://your-proffix.com)",
+      "description": "Deine Proffix Server URL (z.B. https://dein-proffix.com)",
       "required": true
     },
     "proffix_port": {
       "type": "string",
       "title": "Proffix API Port",
-      "description": "Proffix REST API port",
+      "description": "Proffix REST API Port",
       "required": true,
       "default": "11011"
     },
     "proffix_database": {
       "type": "string",
-      "title": "Proffix Database",
-      "description": "Your Proffix database name",
+      "title": "Proffix Datenbank",
+      "description": "Dein Proffix Datenbankname",
       "required": true
     }
+  },
+  "localization": {
+    "default_locale": "de-CH"
   },
   "compatibility": {
     "runtimes": {
