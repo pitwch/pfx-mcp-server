@@ -1,4 +1,4 @@
-# pfx MCP Server
+# pfx MCP Server für Forterro Proffix Px5
 
 **🇩🇪 Deutsch | [🇬🇧 English](README.en.md)**
 
