@@ -1,6 +1,6 @@
 {
   "name": "pfx-mcp-server",
-  "version": "1.0.6",
+  "version": "1.0.10",
   "description": "MCP Server for Forterro Proffix Px5 ERP",
   "main": "mcp-http-bridge.js",
   "bin": {

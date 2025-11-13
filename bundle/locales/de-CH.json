@@ -1,4 +1,5 @@
 {
+  "display_name": "Proffix Px5 MCP Server",
   "description": "Verbinde KI-Assistenten mit deinem Forterro Proffix Px5 ERP-System über das MCP-Protokoll",
   "long_description": "Der Proffix Px5 MCP Server ermöglicht es KI-Assistenten wie Claude, direkt mit deinem Proffix ERP-System zu kommunizieren. Greife auf Adressen, Artikel, Aufträge und weitere Proffix-Funktionen zu, ohne das ERP-System zu verlassen. Alle Daten werden sicher über deine eigene Proffix REST API übertragen.",
   "user_config": {

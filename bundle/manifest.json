@@ -4,7 +4,7 @@
   "display_name": "Proffix Px5 MCP Server",
   "description": "Connect AI assistants to your Forterro Proffix Px5 ERP system via MCP protocol",
   "long_description": "The Proffix Px5 MCP Server enables AI assistants like Claude to communicate directly with your Proffix ERP system. Access addresses, articles, orders and other Proffix functions without leaving the ERP system. All data is securely transmitted via your own Proffix REST API.",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "icon": "icon.png",
   "author": {
     "name": "pfx.ch",
