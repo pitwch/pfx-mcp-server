@@ -16,6 +16,14 @@
  *   PROFFIX_URL         - Proffix server URL
  *   PROFFIX_PORT        - Proffix server port
  *   PROFFIX_DATABASE    - Proffix database name
+ *   RESPONSE_FORMAT     - Default response format: 'json' or 'toon' (optional)
+ * 
+ * Response Formats:
+ *   json - Standard JSON response (default)
+ *   toon - AI-optimized format with natural language descriptions
+ * 
+ * Format can be set globally via RESPONSE_FORMAT env var or per-call via
+ * the 'format' parameter in tool arguments or params.
  */
 
 const https = require('https');
@@ -37,6 +45,9 @@ const PROFFIX_DATABASE = process.env.PROFFIX_DATABASE || '';
 
 // API Key from environment (Authorization header)
 const HTTP_AUTHORIZATION = process.env.HTTP_AUTHORIZATION || '';
+
+// Response format from environment (optional)
+const RESPONSE_FORMAT = process.env.RESPONSE_FORMAT || '';
 
 // Setup file logging
 const LOG_FILE = path.join(os.tmpdir(), 'pfx-mcp-bridge.log');
@@ -89,6 +100,11 @@ function makeRequest(jsonRpcRequest, callback) {
   // Add Authorization header if provided
   if (HTTP_AUTHORIZATION) {
     headers['Authorization'] = HTTP_AUTHORIZATION;
+  }
+
+  // Add Response Format header if provided
+  if (RESPONSE_FORMAT) {
+    headers['X-Response-Format'] = RESPONSE_FORMAT;
   }
 
   const options = {

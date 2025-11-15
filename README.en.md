@@ -125,7 +125,8 @@ For other MCP clients (Cursor, Windsurf, Gemini CLI, etc.) or if you want to man
         "PROFFIX_PASSWORD": "your-password",
         "PROFFIX_URL": "https://your-proffix.com",
         "PROFFIX_PORT": "11011",
-        "PROFFIX_DATABASE": "your-db"
+        "PROFFIX_DATABASE": "your-db",
+        "RESPONSE_FORMAT": "json"
       }
     }
   }
@@ -197,6 +198,45 @@ The pfx MCP Server implements the standardized Model Context Protocol via JSON-R
 - `proffix_call_endpoint` - Direct endpoint call
 - `proffix_describe_endpoint` - Endpoint documentation
 - All specific Proffix API endpoints (Addresses, Articles, Orders, etc.)
+
+### Response Formats
+
+The server supports two response formats:
+
+- **JSON** (default) - Structured JSON responses directly from the Proffix API
+- **TOON** (AI-optimized) - Enhanced responses with natural language descriptions, optimized for AI processing
+
+**Format Activation:**
+
+1. **Global** (recommended) - Applies to all calls:
+```json
+{
+  "name": "proffix_call_endpoint",
+  "arguments": {
+    "endpointId": 9,
+    "format": "toon",
+    "params": {
+      "limit": 10
+    }
+  }
+}
+```
+
+2. **Per-Call** - Overrides global setting:
+```json
+{
+  "name": "proffix_call_endpoint",
+  "arguments": {
+    "endpointId": 9,
+    "params": {
+      "limit": 10,
+      "format": "toon"
+    }
+  }
+}
+```
+
+**Priority:** `params.format` > `arguments.format` > `"json"` (default)
 
 **Server URL:** `https://mcp.pfx.ch/api/server`
 
