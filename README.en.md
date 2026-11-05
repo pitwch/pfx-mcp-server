@@ -2,45 +2,37 @@
 
 [Deutsch](README.md) · **English**
 
-Client bridge and install packages for [pfx MCP](https://mcp.pfx.ch). This repository is not the server. The bridge speaks stdio to the AI client and forwards JSON-RPC to the hosted server:
+Connect Claude, Cursor, and other assistants to your Proffix Px5.
 
 ```text
-AI client → mcp-http-bridge.js → https://mcp.pfx.ch/api/server → your Proffix REST API
+Assistant → pfx MCP → your Proffix
 ```
 
-**An API key is required.** Every call also needs your Proffix REST credentials (URL, port, database, user, password). Neither belongs in git.
+You need an [API key](https://mcp.pfx.ch/request-api-key.html) and the REST login for your Proffix (address, port, database, user, password).
 
-Bridge version: **1.1.9** · Node.js **18+** · License: MIT
-
-## Requirements
-
-1. Request an API key: [mcp.pfx.ch/request-api-key.html](https://mcp.pfx.ch/request-api-key.html) (the key only, no `Bearer` prefix).
-2. A reachable Proffix Px5 REST API (port `11011` is typical).
-3. Node.js 18 or newer, unless you only install the prebuilt MCPB bundle in Claude Desktop.
+Version **1.1.9** · Node.js **18+** · [MIT](LICENSE)
 
 ## Install
 
-### Claude Desktop (MCPB)
+### Claude Desktop
 
 1. Download [pfx-mcp-server.mcpb](https://github.com/pitwch/pfx-mcp-server/releases/latest/download/pfx-mcp-server.mcpb).
-2. Claude Desktop: Settings → Extensions → Advanced settings → Install extension… → select the `.mcpb` file.
-3. Fill in the API key and the Proffix fields.
+2. In Claude: Settings → Extensions → Advanced settings → Install extension… → choose the file.
+3. Enter the API key and your Proffix login.
 4. Restart Claude. Try: “Show addresses in Zurich.”
 
-This is a local desktop extension, not a listing in the public Claude Directory.
-
-### Claude Code (self-hosted marketplace)
+### Claude Code
 
 ```bash
 claude plugin marketplace add pitwch/pfx-mcp-server
 claude plugin install pfx-mcp-server@pfx-mcp-server
 ```
 
-Claude Code prompts for the API key (required, masked) and the Proffix fields. The bridge sends `Authorization: Bearer <key>` to `https://mcp.pfx.ch/api/server`.
+Claude asks for the API key and the Proffix login.
 
-### Other MCP clients (Cursor, Gemini CLI, …)
+### Cursor, Gemini CLI, and other clients
 
-Use the bridge from this repo (or save [mcp-http-bridge.js](mcp-http-bridge.js)):
+Use [mcp-http-bridge.js](mcp-http-bridge.js) from this repo. More clients: [mcp.pfx.ch/ai-clients.html](https://mcp.pfx.ch/ai-clients.html).
 
 ```json
 {
@@ -62,70 +54,42 @@ Use the bridge from this repo (or save [mcp-http-bridge.js](mcp-http-bridge.js))
 }
 ```
 
-On macOS/Linux, change the path in `args`. Client setup: [mcp.pfx.ch/ai-clients.html](https://mcp.pfx.ch/ai-clients.html).
+On macOS and Linux, change the path in `args`. With a login token, leave `PROFFIX_USERNAME` empty and put the token in `PROFFIX_PASSWORD`.
 
-Login token: omit `PROFFIX_USERNAME` and put the token in `PROFFIX_PASSWORD`.
+### ChatGPT
 
-## Configuration
+Plugin package: [pfx-proffix-chatgpt.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip)
 
-| Variable | Required | Meaning |
-| --- | --- | --- |
-| `HTTP_AUTHORIZATION` | yes | `Bearer` plus API key |
-| `PROFFIX_URL` | yes | Proffix host |
-| `PROFFIX_PORT` | yes | REST port, usually `11011` |
-| `PROFFIX_DATABASE` | yes | Tenant database |
-| `PROFFIX_USERNAME` | yes* | REST user |
-| `PROFFIX_PASSWORD` | yes | Password or login token |
-| `RESPONSE_FORMAT` | no | `json` (default) or `toon` |
+## Credentials
 
-\* Leave empty when using a login token.
+| Field | Meaning |
+| --- | --- |
+| API key | From [mcp.pfx.ch](https://mcp.pfx.ch/request-api-key.html), prefixed with `Bearer ` |
+| `PROFFIX_URL` | Address of your Proffix |
+| `PROFFIX_PORT` | REST port, usually `11011` |
+| `PROFFIX_DATABASE` | Database / tenant |
+| `PROFFIX_USERNAME` | User |
+| `PROFFIX_PASSWORD` | Password or login token |
+| `RESPONSE_FORMAT` | `json` or `toon` (optional, default `json`) |
 
-## Response format
+`toon` is a shorter rendering of the same data. A single call can set `format` on its own.
 
-- `json`: Proffix JSON, the default.
-- `toon`: a more compact rendering aimed at models.
-
-Set `RESPONSE_FORMAT` for every call. A single tool call can pass `format` and override the env var for that call.
-
-## What the server does
-
-The hosted endpoint speaks MCP over JSON-RPC (`initialize`, `tools/list`, `tools/call`). Curated `px_*` tools cover common workflows (addresses, articles, stock, debtors/creditors, orders, lists). Legacy tools such as `proffix_search_endpoints` and `proffix_call_endpoint` find and call further REST paths.
-
-Examples:
+## Examples
 
 - “Show open debtors.”
 - “Search articles with laptop in the name.”
 - “Which addresses changed this week?”
 
-List numbers (`listeNr`) are tenant-specific. The model should resolve them with the search tools, not invent them.
+That covers addresses, articles, stock, debtors, creditors, orders, and lists, among other things.
 
-## Security
+## Help
 
-- The API key and Proffix credentials are sent as HTTPS headers to `mcp.pfx.ch` on each request. That server then calls your Proffix REST API.
-- Do not put the key or password in this repo, in tickets, or in the chat.
-- The bridge writes a debug log to `%TEMP%\pfx-mcp-bridge.log` (macOS/Linux: the temp directory, file `pfx-mcp-bridge.log`).
-- Tool results are visible to the client’s model provider. This is not a local offline model.
-- Desktop install warning: [SECURITY_INFO.md](SECURITY_INFO.md).
+- [mcp.pfx.ch](https://mcp.pfx.ch)
+- [Request an API key](https://mcp.pfx.ch/request-api-key.html)
+- [Test the connection](https://mcp.pfx.ch/debug.html)
+- [Server version](https://mcp.pfx.ch/api/version)
+- [support@pfx.ch](mailto:support@pfx.ch)
 
-## ChatGPT plugin (ZIP)
+Claude Desktop may show a warning during install. [SECURITY_INFO.md](SECURITY_INFO.md) explains it. The bridge can write a log to `%TEMP%\pfx-mcp-bridge.log`.
 
-Package with logo, icon, skill, and the MCP reference. No `.app.json` — the directory rejects app references inside the ZIP. An API key is still required.
-
-https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip
-
-## Operations and support
-
-- Product site: [https://mcp.pfx.ch](https://mcp.pfx.ch)
-- API key: [request-api-key.html](https://mcp.pfx.ch/request-api-key.html)
-- Version/status: [https://mcp.pfx.ch/api/version](https://mcp.pfx.ch/api/version)
-- Debug examples: [https://mcp.pfx.ch/debug.html](https://mcp.pfx.ch/debug.html)
-- MCP Registry: package `ch.pfx/mcp-server` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io)
-- Support: [support@pfx.ch](mailto:support@pfx.ch) · [mcp.pfx.ch/support](https://mcp.pfx.ch/support)
-
-Build the MCPB locally: [README-BUILD.md](README-BUILD.md).
-
-## License
-
-MIT. See [LICENSE](LICENSE).
-
-You still need your own access to the Forterro Proffix Px5 REST API.
+Build the MCPB yourself: [README-BUILD.md](README-BUILD.md).
