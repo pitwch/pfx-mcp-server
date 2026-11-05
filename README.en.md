@@ -107,6 +107,12 @@ List numbers (`listeNr`) are tenant-specific. The model should resolve them with
 - Tool results are visible to the client’s model provider. This is not a local offline model.
 - Desktop install warning: [SECURITY_INFO.md](SECURITY_INFO.md).
 
+## ChatGPT plugin (ZIP)
+
+Package with logo, icon, skill, and the MCP reference. No `.app.json` — the directory rejects app references inside the ZIP. An API key is still required.
+
+https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip
+
 ## Operations and support
 
 - Product site: [https://mcp.pfx.ch](https://mcp.pfx.ch)

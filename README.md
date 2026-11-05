@@ -107,6 +107,12 @@ Listennummern (`listeNr`) sind mandantenspezifisch. Die KI soll sie über die vo
 - Tool-Resultate sieht der KI-Anbieter des Clients. Das ist kein lokales Offline-Modell.
 - Details zur Desktop-Installationswarnung: [SECURITY_INFO.md](SECURITY_INFO.md).
 
+## ChatGPT-Plugin (ZIP)
+
+Paket mit Logo, Icon, Skill und MCP-Verweis. Kein `.app.json` — das Directory lehnt App-Verweise im ZIP ab. API-Key bleibt Pflicht.
+
+https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip
+
 ## Betrieb und Support
 
 - Produktseite: [https://mcp.pfx.ch](https://mcp.pfx.ch)
