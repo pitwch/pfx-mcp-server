@@ -136,6 +136,19 @@ Für andere MCP-Clients (Cursor, Windsurf, Gemini CLI, etc.) oder wenn du die Ko
 5. **Client neu starten und testen**  
    Frage deinen AI-Assistenten: *"Zeige mir alle Adressen aus Proffix"*
 
+---
+
+### Option 3: Claude Code Marktplatz
+
+Eigenes Marketplace-Plugin in diesem Repo (kein Anthropic-Directory). **API Key bleibt Pflicht**, plus Proffix-Zugangsdaten. Key anfordern: [request-api-key.html](https://mcp.pfx.ch/request-api-key.html).
+
+```bash
+claude plugin marketplace add pitwch/pfx-mcp-server
+claude plugin install pfx-mcp-server@pfx-mcp-server
+```
+
+Node.js 18+ wird benötigt. Der Key wird als `Bearer` an `https://mcp.pfx.ch/api/server` geschickt und liegt nicht im Git.
+
 ## 📚 Dokumentation
 
 Vollständige Setup-Anleitungen für alle AI-Clients:

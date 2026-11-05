@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "pfx-mcp": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/mcp-http-bridge.js",
+        "https://mcp.pfx.ch/api/server"
+      ],
+      "env": {
+        "HTTP_AUTHORIZATION": "Bearer ${user_config.api_key}",
+        "PROFFIX_USERNAME": "${user_config.proffix_username}",
+        "PROFFIX_PASSWORD": "${user_config.proffix_password}",
+        "PROFFIX_URL": "${user_config.proffix_url}",
+        "PROFFIX_PORT": "${user_config.proffix_port}",
+        "PROFFIX_DATABASE": "${user_config.proffix_database}",
+        "RESPONSE_FORMAT": "${user_config.response_format}"
+      }
+    }
+  }
+}
