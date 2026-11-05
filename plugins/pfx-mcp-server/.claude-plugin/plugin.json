@@ -1,7 +1,8 @@
 {
   "name": "pfx-mcp-server",
   "displayName": "Proffix Px5 (pfx-mcp)",
-  "version": "1.1.9",
+  "version": "1.1.10",
+  "icon": "./icon.png",
   "description": "Connect Claude Code to Forterro Proffix Px5 through pfx-mcp. A pfx MCP API key is required, plus your Proffix REST credentials. The key is sent as Bearer to https://mcp.pfx.ch/api/server and is never optional.",
   "author": {
     "name": "Pedrett IT+Web AG",
