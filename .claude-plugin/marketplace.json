@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "pfx-mcp-server",
   "description": "Pedrett IT+Web: Forterro Proffix Px5 via pfx-mcp. API key required.",
   "owner": {
@@ -10,8 +10,15 @@
     {
       "name": "pfx-mcp-server",
       "source": "./plugins/pfx-mcp-server",
-      "description": "Connect Claude Code to Proffix Px5. Requires a pfx MCP API key plus Proffix REST credentials.",
+      "description": "Connect Claude Code to Proffix Px5 via the local HTTP bridge. Requires a pfx MCP API key plus Proffix REST credentials (configured locally).",
       "version": "1.1.12",
+      "homepage": "https://mcp.pfx.ch"
+    },
+    {
+      "name": "pfx-mcp-remote",
+      "source": "./plugins/pfx-mcp-remote",
+      "description": "Connect Claude to Proffix Px5 via the hosted remote connector on mcp.pfx.ch. OAuth login on the secure connect page; no credentials stored in the plugin. Variant for the official Claude directory.",
+      "version": "1.0.0",
       "homepage": "https://mcp.pfx.ch"
     }
   ]
