@@ -1,0 +1,8 @@
+﻿{
+  "mcpServers": {
+    "pfx-proffix": {
+      "type": "http",
+      "url": "https://mcp.pfx.ch/api/chatgpt/mcp"
+    }
+  }
+}
