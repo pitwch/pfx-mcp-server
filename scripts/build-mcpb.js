@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Build script for creating MCPB bundle
- * Creates a .mcpb file (ZIP archive) containing the MCP bridge and manifest
+ * Build MCPB bundle and sync the canonical bridge into the Claude Code plugin.
+ *
+ *   npm run build:mcpb
+ *   npm run sync:bridge
  */
 
 const fs = require('fs');
@@ -12,130 +14,119 @@ const { execSync } = require('child_process');
 const ROOT_DIR = path.join(__dirname, '..');
 const BUNDLE_DIR = path.join(ROOT_DIR, 'bundle');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
-const OUTPUT_FILE = path.join(DIST_DIR, 'pfx-mcp-server.mcpb');
-
-// Files to include in the bundle
-const FILES_TO_BUNDLE = [
-  'mcp-http-bridge.js',
-  'LICENSE'
-];
-
-// Files to copy from bundle directory
-const BUNDLE_FILES = [
-  'manifest.json',
-  'icon.png'
-];
-
-// Directories to copy from bundle directory
-const BUNDLE_DIRS = [
-  'locales'
-];
-
-console.log('🔨 Building MCPB bundle...');
-
-// Create dist directory if it doesn't exist
-if (!fs.existsSync(DIST_DIR)) {
-  fs.mkdirSync(DIST_DIR, { recursive: true });
-  console.log('✓ Created dist directory');
-}
-
-// Create temporary build directory
 const BUILD_DIR = path.join(ROOT_DIR, '.mcpb-build');
-if (fs.existsSync(BUILD_DIR)) {
-  fs.rmSync(BUILD_DIR, { recursive: true, force: true });
+const OUTPUT_FILE = path.join(DIST_DIR, 'pfx-mcp-server.mcpb');
+const BRIDGE_SRC = path.join(ROOT_DIR, 'mcp-http-bridge.js');
+const BRIDGE_PLUGIN_DEST = path.join(ROOT_DIR, 'plugins', 'pfx-mcp-server', 'mcp-http-bridge.js');
+
+const ROOT_FILES = ['mcp-http-bridge.js', 'LICENSE'];
+const BUNDLE_FILES = ['manifest.json', 'icon.png'];
+const BUNDLE_DIRS = ['locales'];
+
+function syncBridge() {
+  fs.copyFileSync(BRIDGE_SRC, BRIDGE_PLUGIN_DEST);
+  console.log('Synced mcp-http-bridge.js -> plugins/pfx-mcp-server/');
 }
-fs.mkdirSync(BUILD_DIR, { recursive: true });
-console.log('✓ Created temporary build directory');
 
-try {
-  // Copy files from bundle directory
-  for (const file of BUNDLE_FILES) {
-    const src = path.join(BUNDLE_DIR, file);
-    const dest = path.join(BUILD_DIR, file);
-    
-    if (fs.existsSync(src)) {
-      fs.copyFileSync(src, dest);
-      console.log(`✓ Copied ${file}`);
-    } else {
-      console.warn(`⚠ Warning: ${file} not found in bundle/, skipping`);
-    }
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+function copyIfExists(src, dest, label) {
+  if (!fs.existsSync(src)) {
+    console.warn(`Warning: ${label} not found, skipping`);
+    return false;
   }
+  fs.copyFileSync(src, dest);
+  console.log(`Copied ${label}`);
+  return true;
+}
 
-  // Copy directories from bundle directory
-  for (const dir of BUNDLE_DIRS) {
-    const src = path.join(BUNDLE_DIR, dir);
-    const dest = path.join(BUILD_DIR, dir);
-    
-    if (fs.existsSync(src)) {
-      fs.cpSync(src, dest, { recursive: true });
-      console.log(`✓ Copied ${dir}/ directory`);
-    } else {
-      console.warn(`⚠ Warning: ${dir}/ not found in bundle/, skipping`);
-    }
-  }
-
-  // Copy bridge script and other files
-  for (const file of FILES_TO_BUNDLE) {
-    const src = path.join(ROOT_DIR, file);
-    const dest = path.join(BUILD_DIR, file);
-    
-    if (fs.existsSync(src)) {
-      fs.copyFileSync(src, dest);
-      console.log(`✓ Copied ${file}`);
-    } else {
-      console.warn(`⚠ Warning: ${file} not found, skipping`);
-    }
-  }
-
-  // Create ZIP archive (MCPB file)
-  console.log('📦 Creating MCPB archive...');
-  
-  // Check if zip command is available
-  let zipCommand;
-  try {
-    execSync('zip --version', { stdio: 'ignore' });
-    zipCommand = 'zip';
-  } catch {
-    try {
-      execSync('7z', { stdio: 'ignore' });
-      zipCommand = '7z';
-    } catch {
-      throw new Error('Neither zip nor 7z command found. Please install zip or 7-Zip.');
-    }
-  }
-
-  // Remove existing MCPB file if it exists
+function createZipArchive() {
   if (fs.existsSync(OUTPUT_FILE)) {
     fs.unlinkSync(OUTPUT_FILE);
   }
 
-  // Create the archive
-  if (zipCommand === 'zip') {
-    execSync(`cd "${BUILD_DIR}" && zip -r "${OUTPUT_FILE}" .`, { stdio: 'inherit' });
-  } else {
-    execSync(`7z a -tzip "${OUTPUT_FILE}" "${BUILD_DIR}\\*"`, { stdio: 'inherit' });
+  try {
+    execSync('zip --version', { stdio: 'ignore' });
+    execSync(`zip -r "${OUTPUT_FILE}" .`, { cwd: BUILD_DIR, stdio: 'inherit' });
+    return;
+  } catch {
+    // try 7z next
   }
 
-  console.log('✓ Created MCPB archive');
+  try {
+    execSync('7z', { stdio: 'ignore' });
+    execSync(`7z a -tzip "${OUTPUT_FILE}" "${BUILD_DIR}${path.sep}*"`, { stdio: 'inherit' });
+    return;
+  } catch {
+    // try PowerShell Compress-Archive on Windows
+  }
 
-  // Get file size
-  const stats = fs.statSync(OUTPUT_FILE);
-  const fileSizeKB = (stats.size / 1024).toFixed(2);
-  
-  console.log('');
-  console.log('✅ Build complete!');
-  console.log(`📦 Output: ${OUTPUT_FILE}`);
-  console.log(`📊 Size: ${fileSizeKB} KB`);
-  console.log('');
-  console.log('To test: Open the .mcpb file with Claude Desktop');
+  if (process.platform === 'win32') {
+    const tempZip = OUTPUT_FILE.replace(/\.mcpb$/i, '.zip');
+    if (fs.existsSync(tempZip)) fs.unlinkSync(tempZip);
+    const ps = `
+      Compress-Archive -Path '${BUILD_DIR}\\*' -DestinationPath '${tempZip}' -Force
+    `;
+    execSync(`powershell -NoProfile -Command "${ps.replace(/\n/g, ' ')}"`, { stdio: 'inherit' });
+    fs.renameSync(tempZip, OUTPUT_FILE);
+    return;
+  }
 
-} catch (error) {
-  console.error('❌ Build failed:', error.message);
-  process.exit(1);
-} finally {
-  // Clean up temporary build directory
+  throw new Error('No zip tool found. Install zip, 7-Zip, or use Windows PowerShell.');
+}
+
+function build() {
+  console.log('Building MCPB bundle...');
+
+  syncBridge();
+  ensureDir(DIST_DIR);
+
   if (fs.existsSync(BUILD_DIR)) {
     fs.rmSync(BUILD_DIR, { recursive: true, force: true });
-    console.log('✓ Cleaned up temporary files');
   }
+  ensureDir(BUILD_DIR);
+
+  try {
+    for (const file of BUNDLE_FILES) {
+      copyIfExists(path.join(BUNDLE_DIR, file), path.join(BUILD_DIR, file), file);
+    }
+
+    for (const dir of BUNDLE_DIRS) {
+      const src = path.join(BUNDLE_DIR, dir);
+      const dest = path.join(BUILD_DIR, dir);
+      if (fs.existsSync(src)) {
+        fs.cpSync(src, dest, { recursive: true });
+        console.log(`Copied ${dir}/`);
+      } else {
+        console.warn(`Warning: ${dir}/ not found, skipping`);
+      }
+    }
+
+    for (const file of ROOT_FILES) {
+      copyIfExists(path.join(ROOT_DIR, file), path.join(BUILD_DIR, file), file);
+    }
+
+    console.log('Creating MCPB archive...');
+    createZipArchive();
+
+    const sizeKb = (fs.statSync(OUTPUT_FILE).size / 1024).toFixed(2);
+    console.log('');
+    console.log('Build complete');
+    console.log(`Output: ${OUTPUT_FILE}`);
+    console.log(`Size: ${sizeKb} KB`);
+  } finally {
+    if (fs.existsSync(BUILD_DIR)) {
+      fs.rmSync(BUILD_DIR, { recursive: true, force: true });
+      console.log('Cleaned temporary files');
+    }
+  }
+}
+
+const mode = process.argv[2] || 'build';
+if (mode === 'sync' || mode === 'sync:bridge') {
+  syncBridge();
+} else {
+  build();
 }

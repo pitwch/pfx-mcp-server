@@ -10,42 +10,40 @@
 
 Diese Warnung erscheint, weil der MCP Server:
 1. **Node.js ausführt** - Ein vollwertiges Programm mit Dateisystemzugriff
-2. **Auf deine Proffix-Daten zugreift** - Über die REST API
-3. **Netzwerkverbindungen herstellt** - Zu deinem Proffix-Server und mcp.pfx.ch
+2. **Auf deine Proffix-Daten zugreift** - Über die REST API (via mcp.pfx.ch)
+3. **Netzwerkverbindungen herstellt** - Zu mcp.pfx.ch (und von dort zu deinem Proffix)
 
 #### Was macht der Server wirklich?
 
-Der pfx MCP Server:
-- ✅ **Verbindet** sich nur mit `mcp.pfx.ch` (unser Remote-Server)
-- ✅ **Leitet** deine Proffix-Credentials sicher als HTTP-Header weiter
-- ✅ **Speichert KEINE Daten** lokal auf deinem Computer
-- ✅ **Liest KEINE anderen Dateien** außer seiner eigenen Konfiguration
-- ✅ **Ändert NICHTS** an deinem System
+Der pfx MCP Server (lokale Bridge in diesem Repo):
+- **Verbindet** sich nur mit `mcp.pfx.ch`
+- **Leitet** API-Key und Proffix-Credentials als HTTP-Header an mcp.pfx.ch weiter
+- **Speichert keine Geschäftsdaten** lokal
+- **Liest keine lokalen Dateien** außer dem Script selbst
+- **Schreibt** standardmässig nur nach stderr; optional in eine Log-Datei, wenn `PFX_MCP_LOG_FILE` gesetzt ist
+- **Ändert nichts** an deinem System
 
 #### Technische Details
 
-**Was der Server tut:**
 ```
 Claude Desktop → mcp-http-bridge.js → https://mcp.pfx.ch/api/server → Dein Proffix
 ```
 
-**Berechtigungen die benötigt werden:**
-- **Netzwerk**: Verbindung zu mcp.pfx.ch und deinem Proffix-Server
-- **Umgebungsvariablen**: Lesen der Proffix-Credentials aus der Konfiguration
-- **Keine Dateisystem-Operationen** außer dem Laden des Scripts selbst
+**Berechtigungen:**
+- **Netzwerk**: HTTPS zu mcp.pfx.ch
+- **Umgebungsvariablen**: Lesen der Credentials aus der MCP-Konfiguration
+- **Dateisystem**: Script laden; optionales Log nur bei `PFX_MCP_LOG_FILE`
 
 #### Ist das sicher?
 
-✅ **JA**, weil:
-1. **Open Source**: Der gesamte Code ist auf GitHub einsehbar
-2. **Keine Datenspeicherung**: Weder lokal noch auf unserem Server
-3. **Direkte Verbindung**: Deine Credentials gehen direkt an deinen Proffix-Server
-4. **Verschlüsselt**: Alle Verbindungen über HTTPS
-5. **Minimaler Code**: Nur ~200 Zeilen JavaScript, leicht überprüfbar
+1. **Open Source**: Bridge und Packaging sind auf GitHub einsehbar
+2. **Keine lokale Datenspeicherung** von Proffix-Inhalten
+3. **Credentials gehen an mcp.pfx.ch**, das sie an dein Proffix weiterreicht (nicht „direkt nur an Proffix“ vom Client aus)
+4. **Verschlüsselt**: HTTPS
+5. **Minimaler Code**: kleine, prüfbare Bridge (wenige hundert Zeilen)
 
 #### Code-Review
 
-Du kannst den kompletten Source Code hier prüfen:
 - **Bridge Script**: [mcp-http-bridge.js](https://github.com/pitwch/pfx-mcp-server/blob/main/mcp-http-bridge.js)
 - **Manifest**: [bundle/manifest.json](https://github.com/pitwch/pfx-mcp-server/blob/main/bundle/manifest.json)
 
@@ -59,42 +57,40 @@ Du kannst den kompletten Source Code hier prüfen:
 
 This warning appears because the MCP server:
 1. **Runs Node.js** - A full program with filesystem access
-2. **Accesses your Proffix data** - Via the REST API
-3. **Makes network connections** - To your Proffix server and mcp.pfx.ch
+2. **Accesses your Proffix data** - Via the REST API (through mcp.pfx.ch)
+3. **Makes network connections** - To mcp.pfx.ch (and from there to your Proffix)
 
 #### What does the server actually do?
 
-The pfx MCP Server:
-- ✅ **Connects** only to `mcp.pfx.ch` (our remote server)
-- ✅ **Forwards** your Proffix credentials securely as HTTP headers
-- ✅ **Stores NO data** locally on your computer
-- ✅ **Reads NO other files** except its own configuration
-- ✅ **Changes NOTHING** on your system
+The pfx MCP server (local bridge in this repo):
+- **Connects** only to `mcp.pfx.ch`
+- **Forwards** API key and Proffix credentials as HTTP headers to mcp.pfx.ch
+- **Stores no business data** locally
+- **Reads no local files** except the script itself
+- **Writes** to stderr by default; optional file log only if `PFX_MCP_LOG_FILE` is set
+- **Changes nothing** on your system
 
 #### Technical Details
 
-**What the server does:**
 ```
 Claude Desktop → mcp-http-bridge.js → https://mcp.pfx.ch/api/server → Your Proffix
 ```
 
 **Required permissions:**
-- **Network**: Connection to mcp.pfx.ch and your Proffix server
-- **Environment variables**: Read Proffix credentials from configuration
-- **No filesystem operations** except loading the script itself
+- **Network**: HTTPS to mcp.pfx.ch
+- **Environment variables**: Read credentials from MCP configuration
+- **Filesystem**: Load the script; optional log only with `PFX_MCP_LOG_FILE`
 
 #### Is it safe?
 
-✅ **YES**, because:
-1. **Open Source**: All code is visible on GitHub
-2. **No data storage**: Neither locally nor on our server
-3. **Direct connection**: Your credentials go directly to your Proffix server
-4. **Encrypted**: All connections via HTTPS
-5. **Minimal code**: Only ~200 lines of JavaScript, easy to verify
+1. **Open Source**: Bridge and packaging are on GitHub
+2. **No local storage** of Proffix content
+3. **Credentials go to mcp.pfx.ch**, which calls your Proffix (not a direct client-only link to Proffix)
+4. **Encrypted**: HTTPS
+5. **Minimal code**: small, reviewable bridge (a few hundred lines)
 
 #### Code Review
 
-You can review the complete source code here:
 - **Bridge Script**: [mcp-http-bridge.js](https://github.com/pitwch/pfx-mcp-server/blob/main/mcp-http-bridge.js)
 - **Manifest**: [bundle/manifest.json](https://github.com/pitwch/pfx-mcp-server/blob/main/bundle/manifest.json)
 
@@ -105,14 +101,14 @@ You can review the complete source code here:
 ### Was wird übertragen? / What is transmitted?
 
 **An mcp.pfx.ch:**
-- ✅ API Key (zur Authentifizierung)
-- ✅ Proffix Credentials (als HTTP Headers)
-- ✅ MCP Anfragen (z.B. "Zeige Adressen")
+- API Key (Authentifizierung)
+- Proffix Credentials (HTTP Headers)
+- MCP-Anfragen (z.B. "Zeige Adressen")
 
 **NICHT übertragen / NOT transmitted:**
-- ❌ Keine lokalen Dateien / No local files
-- ❌ Keine Browserdaten / No browser data
-- ❌ Keine anderen Programme / No other programs
+- Keine lokalen Dateien / No local files
+- Keine Browserdaten / No browser data
+- Keine anderen Programme / No other programs
 
 ### Datenfluss / Data Flow
 
@@ -121,7 +117,7 @@ You can review the complete source code here:
 2. Bridge leitet weiter an mcp.pfx.ch
 3. mcp.pfx.ch ruft dein Proffix ab
 4. Antwort geht zurück zu Claude
-5. KEINE Speicherung irgendwo
+5. KEINE Speicherung der Geschäftsdaten in der Bridge
 ```
 
 ---
@@ -130,7 +126,7 @@ You can review the complete source code here:
 
 ### 🇩🇪 Kann der Server meine Dateien lesen?
 
-**Technisch ja**, aber der Code tut das nicht. Du kannst den Source Code selbst überprüfen - es sind nur ~200 Zeilen.
+**Technisch ja** (Node.js), aber der Bridge-Code tut das nicht. Du kannst den Source Code selbst prüfen.
 
 ### 🇩🇪 Warum nicht lokal ohne Remote-Server?
 
@@ -138,15 +134,15 @@ Der Remote-Server bei mcp.pfx.ch:
 - Verwaltet 120+ Proffix Endpoints
 - Stellt Fuzzy-Search bereit
 - Wird zentral aktualisiert
-- Du musst nichts installieren oder warten
+- Du musst nichts am Backend warten
 
 ### 🇩🇪 Kann ich den Server selbst hosten?
 
-Ja! Der Server-Code ist Open Source. Du kannst ihn auf deinem eigenen Server deployen und die URL im Manifest ändern.
+Dieses Repo enthält die **Client-Bridge** und Packaging. Das gehostete Backend unter mcp.pfx.ch ist separat. Für eine eigene URL kannst du die Bridge-URL im Manifest bzw. in der Client-Config anpassen, sofern du ein kompatibles Backend betreibst.
 
 ### 🇬🇧 Can the server read my files?
 
-**Technically yes**, but the code doesn't do that. You can review the source code yourself - it's only ~200 lines.
+**Technically yes** (Node.js), but the bridge code does not. You can review the source yourself.
 
 ### 🇬🇧 Why not local without remote server?
 
@@ -154,11 +150,11 @@ The remote server at mcp.pfx.ch:
 - Manages 120+ Proffix endpoints
 - Provides fuzzy search
 - Is centrally updated
-- You don't need to install or maintain anything
+- You don't need to maintain the backend
 
 ### 🇬🇧 Can I self-host the server?
 
-Yes! The server code is open source. You can deploy it on your own server and change the URL in the manifest.
+This repo ships the **client bridge** and packaging. The hosted backend at mcp.pfx.ch is separate. You can point the bridge URL in the manifest/client config at your own compatible backend.
 
 ---
 
