@@ -1,14 +1,19 @@
 {
   "name": "pfx-mcp-remote",
   "displayName": "Proffix Px5 (pfx-mcp) – Remote",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Connect Claude to Forterro Proffix Px5 through the hosted pfx-mcp remote connector on https://mcp.pfx.ch. Authentication is OAuth 2.1 (DCR + PKCE): sign in on the secure connect page with your pfx MCP API key and Proffix REST credentials. No credentials are stored in the plugin and nothing is forwarded via environment variables.",
   "author": {
     "name": "Pedrett IT+Web AG",
+    "email": "support@pfx.ch",
     "url": "https://mcp.pfx.ch"
   },
   "homepage": "https://mcp.pfx.ch",
   "repository": "https://github.com/pitwch/pfx-mcp-server",
   "license": "MIT",
-  "keywords": ["proffix", "erp", "mcp", "px5"]
+  "keywords": ["proffix", "erp", "mcp", "px5"],
+  "documentationUrl": "https://mcp.pfx.ch",
+  "supportUrl": "https://mcp.pfx.ch/#kontakt",
+  "privacyPolicyUrl": "https://mcp.pfx.ch/datenschutz.html",
+  "termsOfServiceUrl": "https://mcp.pfx.ch/nutzungsbedingungen.html"
 }
