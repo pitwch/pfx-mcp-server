@@ -10,7 +10,7 @@ Assistant → pfx MCP → your Proffix
 
 You need an [API key](https://mcp.pfx.ch/request-api-key.html) and the REST login for your Proffix (address, port, database, user, password).
 
-Version **1.1.9** · Node.js **18+** · [MIT](LICENSE)
+Version **1.1.13** · Node.js **18+** · [MIT](LICENSE)
 
 ## Install
 
@@ -90,6 +90,6 @@ That covers addresses, articles, stock, debtors, creditors, orders, and lists, a
 - [Server version](https://mcp.pfx.ch/api/version)
 - [support@pfx.ch](mailto:support@pfx.ch)
 
-Claude Desktop may show a warning during install. [SECURITY_INFO.md](SECURITY_INFO.md) explains it. The bridge can write a log to `%TEMP%\pfx-mcp-bridge.log`.
+Claude Desktop may show a warning during install. [SECURITY_INFO.md](SECURITY_INFO.md) explains it. Logs go to stderr by default; optional file log via `PFX_MCP_LOG_FILE`.
 
 Build the MCPB yourself: [README-BUILD.md](README-BUILD.md).

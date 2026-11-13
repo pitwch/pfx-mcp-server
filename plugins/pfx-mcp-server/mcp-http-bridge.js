@@ -1,175 +1,166 @@
 #!/usr/bin/env node
 
 /**
- * MCP HTTP Bridge for Claude Desktop
- * 
- * This bridge allows Claude Desktop (stdio transport) to connect to
- * HTTP-based MCP servers like pfx-mcp.
- * 
+ * MCP HTTP Bridge
+ *
+ * Bridges Claude Desktop / other stdio MCP clients to an HTTP MCP server.
+ *
  * Usage:
  *   node mcp-http-bridge.js <server-url>
- * 
- * Environment variables for authentication:
- *   HTTP_AUTHORIZATION  - API Key (e.g., "Bearer pfx_abc123...")
+ *
+ * Environment:
+ *   HTTP_AUTHORIZATION  - API key (e.g. "Bearer pfx_...")
  *   PROFFIX_USERNAME    - Proffix username
- *   PROFFIX_PASSWORD    - Proffix password
+ *   PROFFIX_PASSWORD    - Proffix password or login token
  *   PROFFIX_URL         - Proffix server URL
- *   PROFFIX_PORT        - Proffix server port
+ *   PROFFIX_PORT        - Proffix REST port
  *   PROFFIX_DATABASE    - Proffix database name
- *   RESPONSE_FORMAT     - Default response format: 'json' or 'toon' (optional)
- * 
- * Response Formats:
- *   json - Standard JSON response (default)
- *   toon - AI-optimized format with natural language descriptions
- * 
- * Format can be set globally via RESPONSE_FORMAT env var or per-call via
- * the 'format' parameter in tool arguments or params.
+ *   RESPONSE_FORMAT     - Default format: json | toon (optional)
+ *   PFX_MCP_LOG_FILE    - Optional path for file logging (stderr always on)
+ *
+ * Per-call format can still override RESPONSE_FORMAT via tool args/params.
  */
 
-const https = require('https');
-const http = require('http');
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 
-// Configuration
-const SERVER_URL = process.argv[2] || process.env.MCP_SERVER_URL || 'https://mcp.pfx.ch/api/server';
+const config = {
+  serverUrl: process.argv[2] || process.env.MCP_SERVER_URL || 'https://mcp.pfx.ch/api/server',
+  authorization: process.env.HTTP_AUTHORIZATION || '',
+  username: process.env.PROFFIX_USERNAME || '',
+  password: process.env.PROFFIX_PASSWORD || '',
+  url: process.env.PROFFIX_URL || '',
+  port: process.env.PROFFIX_PORT || '',
+  database: process.env.PROFFIX_DATABASE || '',
+  responseFormat: process.env.RESPONSE_FORMAT || '',
+  logFile: process.env.PFX_MCP_LOG_FILE || '',
+  timeoutMs: 60_000
+};
 
-// Proffix credentials from environment
-const PROFFIX_USERNAME = process.env.PROFFIX_USERNAME || '';
-const PROFFIX_PASSWORD = process.env.PROFFIX_PASSWORD || '';
-const PROFFIX_URL = process.env.PROFFIX_URL || '';
-const PROFFIX_PORT = process.env.PROFFIX_PORT || '';
-const PROFFIX_DATABASE = process.env.PROFFIX_DATABASE || '';
+const logStream = config.logFile
+  ? fs.createWriteStream(path.resolve(config.logFile), { flags: 'a' })
+  : null;
 
-// API Key from environment (Authorization header)
-const HTTP_AUTHORIZATION = process.env.HTTP_AUTHORIZATION || '';
-
-// Response format from environment (optional)
-const RESPONSE_FORMAT = process.env.RESPONSE_FORMAT || '';
-
-// Setup file logging
-const LOG_FILE = path.join(os.tmpdir(), 'pfx-mcp-bridge.log');
-const logStream = fs.createWriteStream(LOG_FILE, { flags: 'a' });
-
-// Parse server URL
-const serverUrl = new URL(SERVER_URL);
-const isHttps = serverUrl.protocol === 'https:';
-const httpModule = isHttps ? https : http;
-
-// Setup readline for JSON-RPC over stdio
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
   terminal: false
 });
 
-// Log to stderr (stdout is reserved for JSON-RPC) and to file
 function log(message, level = 'info') {
-  const timestamp = new Date().toISOString();
-  const logMsg = `${timestamp} [MCP Bridge] [${level}] ${message}`;
-  console.error(logMsg);
-  logStream.write(logMsg + '\n');
+  const line = `${new Date().toISOString()} [MCP Bridge] [${level}] ${message}`;
+  console.error(line);
+  if (logStream) logStream.write(line + '\n');
 }
 
-// Send JSON-RPC response to stdout
+function closeLog() {
+  if (logStream) logStream.end();
+}
+
 function sendResponse(response) {
   try {
-    const responseStr = JSON.stringify(response) + '\n';
-    process.stdout.write(responseStr);
+    process.stdout.write(JSON.stringify(response) + '\n');
   } catch (err) {
     log(`Error sending response: ${err.message}`, 'error');
   }
 }
 
-// Make HTTP request to MCP server
-function makeRequest(jsonRpcRequest, callback) {
-  const postData = JSON.stringify(jsonRpcRequest);
-  
+function buildHeaders(body) {
   const headers = {
     'Content-Type': 'application/json',
-    'Content-Length': Buffer.byteLength(postData),
-    'X-Proffix-Username': PROFFIX_USERNAME,
-    'X-Proffix-Password': PROFFIX_PASSWORD,
-    'X-Proffix-Url': PROFFIX_URL,
-    'X-Proffix-Port': PROFFIX_PORT,
-    'X-Proffix-Database': PROFFIX_DATABASE
+    'Content-Length': Buffer.byteLength(body)
   };
 
-  // Add Authorization header if provided
-  if (HTTP_AUTHORIZATION) {
-    headers['Authorization'] = HTTP_AUTHORIZATION;
-  }
-
-  // Add Response Format header if provided
-  if (RESPONSE_FORMAT) {
-    headers['X-Response-Format'] = RESPONSE_FORMAT;
-  }
-
-  const options = {
-    hostname: serverUrl.hostname,
-    port: serverUrl.port || (isHttps ? 443 : 80),
-    path: serverUrl.pathname,
-    method: 'POST',
-    headers: headers
+  const optional = {
+    Authorization: config.authorization,
+    'X-Proffix-Username': config.username,
+    'X-Proffix-Password': config.password,
+    'X-Proffix-Url': config.url,
+    'X-Proffix-Port': config.port,
+    'X-Proffix-Database': config.database,
+    'X-Response-Format': config.responseFormat
   };
 
-  const req = httpModule.request(options, (res) => {
-    let data = '';
+  for (const [key, value] of Object.entries(optional)) {
+    if (value) headers[key] = value;
+  }
 
-    res.on('data', (chunk) => {
-      data += chunk;
-    });
-
-    res.on('end', () => {
-      // Check HTTP status code
-      if (res.statusCode !== 200) {
-        callback(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 200)}`));
-        return;
-      }
-
-      try {
-        const response = JSON.parse(data);
-        
-        // Ensure response has proper JSON-RPC structure
-        if (!response.jsonrpc) {
-          response.jsonrpc = '2.0';
-        }
-        
-        // If server returned an error without proper JSON-RPC format, wrap it
-        if (response.error && !response.id) {
-          callback(new Error(response.error.message || JSON.stringify(response.error)));
-          return;
-        }
-        
-        callback(null, response);
-      } catch (err) {
-        // If response is not JSON, treat as error
-        callback(new Error(`Invalid JSON response: ${data.substring(0, 200)}`));
-      }
-    });
-  });
-
-  req.on('error', (err) => {
-    callback(err);
-  });
-
-  req.setTimeout(60000, () => {
-    req.destroy();
-    callback(new Error('Request timeout after 60 seconds'));
-  });
-
-  req.write(postData);
-  req.end();
+  return headers;
 }
 
-// Handle incoming JSON-RPC requests from stdin
-rl.on('line', (line) => {
-  if (!line.trim()) return; // Skip empty lines
-  
-  messageCount++;
-  
+async function makeRequest(jsonRpcRequest) {
+  const body = JSON.stringify(jsonRpcRequest);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), config.timeoutMs);
+
+  try {
+    const res = await fetch(config.serverUrl, {
+      method: 'POST',
+      headers: buildHeaders(body),
+      body,
+      signal: controller.signal
+    });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${text.substring(0, 200)}`);
+    }
+
+    let response;
+    try {
+      response = JSON.parse(text);
+    } catch {
+      throw new Error(`Invalid JSON response: ${text.substring(0, 200)}`);
+    }
+
+    if (!response.jsonrpc) {
+      response.jsonrpc = '2.0';
+    }
+
+    if (response.error && (response.id === undefined || response.id === null)) {
+      throw new Error(response.error.message || JSON.stringify(response.error));
+    }
+
+    return response;
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Request timeout after 60 seconds');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * MCP protocolVersion values are ISO dates (e.g. 2024-11-05).
+ * Lexicographic string compare is correct for that format.
+ */
+function normalizeInitializeResponse(request, response) {
+  if (request.method !== 'initialize' || !response.result?.protocolVersion) {
+    return response;
+  }
+
+  const clientVersion = request.params?.protocolVersion;
+  const serverVersion = response.result.protocolVersion;
+
+  if (clientVersion && clientVersion > serverVersion) {
+    response.result.protocolVersion = clientVersion;
+    const caps = response.result.capabilities;
+    if (caps) {
+      if (caps.prompts === true) caps.prompts = {};
+      if (caps.tools === true) caps.tools = {};
+    }
+  }
+
+  return response;
+}
+
+rl.on('line', async (line) => {
+  if (!line.trim()) return;
+
   let request;
   try {
     request = JSON.parse(line);
@@ -178,107 +169,65 @@ rl.on('line', (line) => {
     sendResponse({
       jsonrpc: '2.0',
       id: null,
-      error: {
-        code: -32700,
-        message: 'Parse error'
-      }
+      error: { code: -32700, message: 'Parse error' }
     });
     return;
   }
 
-  // Check if this is a notification (no id field)
   const isNotification = request.id === undefined || request.id === null;
 
-  // Handle notifications/initialized specially - don't forward to server
   if (isNotification && request.method === 'notifications/initialized') {
     return;
   }
 
-  // Notifications don't get responses - just forward and ignore
   if (isNotification) {
-    makeRequest(request, (err) => {
-      if (err) {
-        log(`Notification error: ${err.message}`, 'error');
-      }
-    });
+    try {
+      await makeRequest(request);
+    } catch (err) {
+      log(`Notification error: ${err.message}`, 'error');
+    }
     return;
   }
 
-  // Forward request to HTTP MCP server
-  makeRequest(request, (err, response) => {
-    if (err) {
-      log(`Request error for ${request.method}: ${err.message}`, 'error');
-      sendResponse({
-        jsonrpc: '2.0',
-        id: request.id,
-        error: {
-          code: -32603,
-          message: `Bridge error: ${err.message}`
-        }
-      });
-    } else {
-      // Ensure response has the correct id from the request
-      if (response.id === undefined || response.id === null) {
-        response.id = request.id;
-      }
-      
-      // Upgrade protocol version for initialize response to match client expectations
-      if (request.method === 'initialize' && response.result && response.result.protocolVersion) {
-        const clientVersion = request.params?.protocolVersion;
-        const serverVersion = response.result.protocolVersion;
-        
-        // If client expects newer version, upgrade the response
-        if (clientVersion && clientVersion > serverVersion) {
-          response.result.protocolVersion = clientVersion;
-          
-          // Normalize capabilities for newer protocol versions
-          if (response.result.capabilities) {
-            const caps = response.result.capabilities;
-            if (caps.prompts === true) caps.prompts = {};
-            if (caps.tools === true) caps.tools = {};
-          }
-        }
-      }
-      
-      sendResponse(response);
+  try {
+    let response = await makeRequest(request);
+    if (response.id === undefined || response.id === null) {
+      response.id = request.id;
     }
-  });
+    response = normalizeInitializeResponse(request, response);
+    sendResponse(response);
+  } catch (err) {
+    log(`Request error for ${request.method}: ${err.message}`, 'error');
+    sendResponse({
+      jsonrpc: '2.0',
+      id: request.id,
+      error: { code: -32603, message: `Bridge error: ${err.message}` }
+    });
+  }
 });
 
-// Handle process termination
-process.on('SIGINT', () => {
-  logStream.end();
-  process.exit(0);
-});
+function shutdown(code = 0) {
+  closeLog();
+  process.exit(code);
+}
 
-process.on('SIGTERM', () => {
-  logStream.end();
-  process.exit(0);
-});
+process.on('SIGINT', () => shutdown(0));
+process.on('SIGTERM', () => shutdown(0));
+process.stdin.on('end', () => shutdown(0));
 
-process.stdin.on('end', () => {
-  logStream.end();
-  process.exit(0);
-});
-
-// Handle unexpected errors
 process.on('uncaughtException', (err) => {
   log(`Uncaught exception: ${err.message}`, 'error');
   log(err.stack, 'error');
-  logStream.end();
-  process.exit(1);
+  shutdown(1);
 });
 
 process.on('unhandledRejection', (reason) => {
   log(`Unhandled rejection: ${reason}`, 'error');
-  logStream.end();
-  process.exit(1);
+  shutdown(1);
 });
 
-log(`MCP HTTP Bridge started`);
-log(`Server: ${SERVER_URL}`);
-log(`Log file: ${LOG_FILE}`);
+log('MCP HTTP Bridge started');
+log(`Server: ${config.serverUrl}`);
+if (config.logFile) log(`Log file: ${path.resolve(config.logFile)}`);
 
-// Keep the process alive
 process.stdin.resume();
-let messageCount = 0;

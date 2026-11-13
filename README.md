@@ -10,7 +10,7 @@ KI-Assistent → pfx MCP → Ihr Proffix
 
 Dafür brauchen Sie einen [API-Key](https://mcp.pfx.ch/request-api-key.html) und die REST-Zugangsdaten Ihres Proffix (Adresse, Port, Datenbank, Benutzer, Passwort).
 
-Version **1.1.9** · Node.js **18+** · [MIT](LICENSE)
+Version **1.1.13** · Node.js **18+** · [MIT](LICENSE)
 
 ## Installation
 
@@ -90,6 +90,6 @@ Abgedeckt sind unter anderem Adressen, Artikel, Lager, Debitoren, Kreditoren, Au
 - [Server-Version](https://mcp.pfx.ch/api/version)
 - [support@pfx.ch](mailto:support@pfx.ch)
 
-Bei der Installation in Claude Desktop kann eine Warnung erscheinen. Was sie bedeutet, steht in [SECURITY_INFO.md](SECURITY_INFO.md). Die Bridge schreibt bei Bedarf ein Log nach `%TEMP%\pfx-mcp-bridge.log`.
+Bei der Installation in Claude Desktop kann eine Warnung erscheinen. Was sie bedeutet, steht in [SECURITY_INFO.md](SECURITY_INFO.md). Logs gehen standardmässig nach stderr; optional Datei-Log über `PFX_MCP_LOG_FILE`.
 
 MCPB selbst bauen: [README-BUILD.md](README-BUILD.md).

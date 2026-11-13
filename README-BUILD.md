@@ -2,73 +2,80 @@
 
 ## Quick Start
 
-To build and test your MCPB locally:
+```bash
+npm run build:mcpb
+```
+
+Or on Windows:
 
 ```powershell
 .\scripts\build-mcpb.ps1
 ```
 
-This creates `dist/pfx-mcp-server.mcpb` which you can drag and drop into Claude Desktop for testing.
+This creates `dist/pfx-mcp-server.mcpb` for Claude Desktop testing.
 
-## What the Build Script Does
+Before committing bridge changes without a full build:
 
-1. **Copies all required files** from `bundle/` directory:
-   - `manifest.json` - Package configuration
-   - `icon.png` - Application icon
-   - `locales/` - Localization files
+```bash
+npm run sync:bridge
+```
 
-2. **Copies server files** from root:
-   - `mcp-http-bridge.js` - HTTP bridge server
-   - `LICENSE` - License file
+That copies the canonical root `mcp-http-bridge.js` into `plugins/pfx-mcp-server/`.
 
-3. **Creates MCPB package** - Bundles everything into a `.mcpb` file (which is actually a ZIP archive)
+## What the Build Does
+
+1. Syncs the bridge into the Claude Code plugin folder
+2. Stages `bundle/` (manifest, icon, locales) plus root bridge and LICENSE
+3. Zips to `dist/pfx-mcp-server.mcpb` (`zip`, `7z`, or PowerShell `Compress-Archive`)
 
 ## How the Bridge Works
 
-The `mcp-http-bridge.js` bridges between:
+`mcp-http-bridge.js` bridges:
 
-- **Claude Desktop** (stdio transport) ↔ **Your HTTP MCP Server** (HTTP transport)
+- **stdio MCP clients** (Claude Desktop, Cursor, …) ↔ **HTTP MCP** at `mcp.pfx.ch`
 
 ### Key Features
 
-- **Protocol version upgrade** - Automatically upgrades older server versions (2024-11-05) to match Claude's expectations (2025-06-18)
-- **Capability normalization** - Ensures capability structures are compatible
-- **Error logging** - Logs errors to `%TEMP%\pfx-mcp-bridge.log` for debugging
+- Protocol version shim for Claude Desktop (MCP versions are ISO dates; string compare is fine)
+- Capability normalization (`true` → `{}` for tools/prompts)
+- Logging to stderr; optional file log via `PFX_MCP_LOG_FILE`
 
 ## Debugging
 
-If you encounter issues, check the log file:
+Default logs go to the client stderr. For a file log:
 
 ```powershell
+$env:PFX_MCP_LOG_FILE = "$env:TEMP\pfx-mcp-bridge.log"
+# then start the bridge / MCP client
 Get-Content $env:TEMP\pfx-mcp-bridge.log | Select-Object -Last 50
 ```
 
 ## Development Workflow
 
-1. Make changes to your code
-2. Run `.\scripts\build-mcpb.ps1`
-3. Drag the new `.mcpb` into Claude Desktop
-4. Test your changes
-5. Check logs if needed
+1. Edit `mcp-http-bridge.js` (root only)
+2. `npm run build:mcpb` (or at least `npm run sync:bridge`)
+3. Install/test the `.mcpb` or Claude Code plugin
+4. Check stderr / optional log file
 
 ## Files Structure
 
 ```text
 pfx-mcp-server/
 ├── bundle/
-│   ├── manifest.json       # MCPB package configuration
-│   ├── icon.png           # Application icon
-│   └── locales/           # Localization files
+│   ├── manifest.json
+│   ├── icon.png
+│   └── locales/
+├── plugins/pfx-mcp-server/   # Claude Code plugin (bridge synced from root)
 ├── scripts/
-│   └── build-mcpb.ps1     # Build script
-├── mcp-http-bridge.js     # HTTP bridge server
-├── LICENSE                # MIT License
+│   └── build-mcpb.js         # Single build entrypoint
+├── mcp-http-bridge.js        # Canonical bridge
+├── LICENSE
 └── dist/
-    └── pfx-mcp-server.mcpb  # Built package
+    └── pfx-mcp-server.mcpb
 ```
 
 ## Notes
 
-- The bridge connects to `https://mcp.pfx.ch/api/server` by default
-- Environment variables are injected from the MCPB configuration
-- The log file persists between runs for debugging purposes
+- Default server URL: `https://mcp.pfx.ch/api/server`
+- Env vars come from MCPB / plugin `user_config` (including `RESPONSE_FORMAT`)
+- Keep `pfx-mcp-remote` version independent of the bridge package

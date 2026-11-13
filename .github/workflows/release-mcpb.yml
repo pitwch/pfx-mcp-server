@@ -8,6 +8,9 @@ on:
       - 'server.json'
       - 'bundle/manifest.json'
       - 'package.json'
+      - 'mcp-http-bridge.js'
+      - 'plugins/pfx-mcp-server/**'
+      - '.claude-plugin/marketplace.json'
   workflow_dispatch:
     inputs:
       version:
@@ -70,15 +73,31 @@ jobs:
           
       - name: Sync version across files
         if: steps.check_tag.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          
-          # Ensure all files have the same version
+          # Bridge package + MCPB + Claude Code plugin (not pfx-mcp-remote)
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" bundle/manifest.json
           sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" server.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" plugins/pfx-mcp-server/.claude-plugin/plugin.json
           
-          echo "Synced version to $VERSION across all files"
+          # Marketplace entry for pfx-mcp-server only
+          python3 - <<'PY'
+          import json, os
+          version = os.environ["VERSION"]
+          path = ".claude-plugin/marketplace.json"
+          with open(path, encoding="utf-8") as f:
+              data = json.load(f)
+          for plugin in data.get("plugins", []):
+              if plugin.get("name") == "pfx-mcp-server":
+                  plugin["version"] = version
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n")
+          PY
+          
+          echo "Synced version to $VERSION across package/MCPB/plugin/marketplace"
           
       - name: Build MCPB bundle
         if: steps.check_tag.outputs.exists == 'false'
