@@ -1,4 +1,4 @@
-﻿---
+---
 name: get-started
 description: Ersteinrichtung Proffix Px5 (pfx-mcp) ueber den Remote-Connector / first-run setup over the hosted connector. Use when the user wants to connect Proffix, search addresses, or run an ERP query. Reply in the user's language.
 ---
