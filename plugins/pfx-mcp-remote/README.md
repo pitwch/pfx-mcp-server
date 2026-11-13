@@ -11,7 +11,7 @@ Authentication is OAuth 2.1 (Dynamic Client Registration + PKCE). On first use,
 Claude opens the secure connect page on mcp.pfx.ch, where you sign in with your pfx
 MCP API key and your Proffix REST credentials. The plugin itself stores nothing.
 
-Privacy: https://mcp.pfx.ch/privacy / Terms: https://mcp.pfx.ch/terms / Support: https://mcp.pfx.ch/support
+Privacy: https://mcp.pfx.ch/datenschutz.html · Terms: https://mcp.pfx.ch/nutzungsbedingungen.html · Support: https://mcp.pfx.ch/#kontakt
 
 ## .mcp.json
 

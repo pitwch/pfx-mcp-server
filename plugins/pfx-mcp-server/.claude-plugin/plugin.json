@@ -11,6 +11,10 @@
   "repository": "https://github.com/pitwch/pfx-mcp-server",
   "license": "MIT",
   "keywords": ["proffix", "erp", "mcp", "px5"],
+  "documentationUrl": "https://mcp.pfx.ch",
+  "supportUrl": "https://mcp.pfx.ch/#kontakt",
+  "privacyPolicyUrl": "https://mcp.pfx.ch/datenschutz.html",
+  "termsOfServiceUrl": "https://mcp.pfx.ch/nutzungsbedingungen.html",
   "userConfig": {
     "api_key": {
       "type": "string",

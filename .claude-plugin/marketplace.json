@@ -18,7 +18,7 @@
       "name": "pfx-mcp-remote",
       "source": "./plugins/pfx-mcp-remote",
       "description": "Connect Claude to Proffix Px5 via the hosted remote connector on mcp.pfx.ch. OAuth login on the secure connect page; no credentials stored in the plugin. Variant for the official Claude directory.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "homepage": "https://mcp.pfx.ch"
     }
   ]
