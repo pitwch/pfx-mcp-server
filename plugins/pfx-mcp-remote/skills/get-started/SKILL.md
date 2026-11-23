@@ -1,41 +1,26 @@
 ---
 name: get-started
-description: Ersteinrichtung Proffix Px5 (pfx-mcp) über den Remote-Connector / first-run setup over the hosted connector. Use when the user wants to connect Proffix, search addresses, or run an ERP query. Reply in the user's language.
+description: Ersteinrichtung Proffix Px5 (pfx-mcp) über den Remote-Connector. Nutzen, wenn jemand Proffix per OAuth verbinden oder eine erste Lese-Abfrage starten will. Antworten in der Sprache der letzten Nutzernachricht.
 ---
 
 # Proffix Px5 (pfx-mcp) — Remote
 
 ## Sprache
 
-Antworte immer in der Sprache der letzten Nutzernachricht. Deutsch bleibt Deutsch,
-Englisch bleibt Englisch, Französisch bleibt Französisch. Fachbegriffe (API-Key,
-Proffix, Datenbank, Port) dürfen bleiben.
+Antworte immer in der Sprache der letzten Nutzernachricht. Deutsch bleibt Deutsch, Englisch bleibt Englisch. Fachbegriffe (API-Key, Proffix, Datenbank, Port) dürfen bleiben.
 
 ## Anmeldung (OAuth)
 
-Dieser Connector läuft remote auf https://mcp.pfx.ch. Die Anmeldung erfolgt über
-OAuth auf der sicheren Connect-Seite von mcp.pfx.ch — nicht im Chat.
+Dieser Connector läuft remote auf https://mcp.pfx.ch. Die Anmeldung erfolgt über OAuth auf der sicheren Connect-Seite von mcp.pfx.ch — **nicht** im Chat.
 
-1. Wenn keine pfx-Tools verfügbar sind oder ein Aufruf 401/403 liefert: den Nutzer die
-   Verbindung über den OAuth-Dialog herstellen lassen. Dort gibt er ein:
-   - pfx-MCP-API-Key von https://mcp.pfx.ch/request-api-key.html (nur der Key)
-   - Proffix-Benutzer, Passwort, URL, Port (Standard 11011), Datenbank
+1. Wenn keine pfx-Tools verfügbar sind oder ein Aufruf 401/403 liefert: die Person die Verbindung über den OAuth-Dialog herstellen lassen. Dort gibt sie API-Key und Proffix-Zugangsdaten selbst ein.
 2. API-Key und Passwort nie im Chat verlangen und nie wiederholen.
-3. Key, Datenbank und listeNr nie erfinden.
+3. Key, Datenbank und `listeNr` nie erfinden.
 
-## Mandanten
+## Rechte
 
-Mehrere Mandanten sind als Verbindungsprofile auf dem Server möglich. Mit
-`list_connection_profiles` anzeigen, mit `set_active_profile` wechseln.
-Schreibvorgänge nur wenn das aktive Profil nicht `readOnly` ist.
+Der Connector erbt die Proffix-ERP-Berechtigungen des verbundenen Benutzers. Ohne Proffix-Recht für ein Modul (z. B. Lohnbuchhaltung) sind diese Daten auch hier nicht sichtbar.
 
 ## Smoke
 
-Sobald der Nutzer bestätigt, dass die Verbindung steht, einen Lese-Aufruf ausführen
-(z. B. eine Adresssuche mit einem Namen, den er nennt). Reports
-(px_generate_report) einzeln ausführen. Anlegen, Ändern und Löschen erst nach
-ausdrücklicher Bestätigung.
-
-## Regeln
-
-- `compare_profiles` nur zum Lesen, nicht zum Kopieren zwischen Mandanten.
+Sobald die Verbindung steht, einen Lese-Aufruf ausführen (z. B. Adresssuche mit einem Namen, den die Person nennt). Reports (`px_generate_report`) einzeln ausführen. Anlegen, Ändern und Löschen erst nach ausdrücklicher Bestätigung. Keine Lohn-/AHV-/Payslip-Workflows in diesem Onboarding anleiten.
