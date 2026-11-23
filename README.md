@@ -58,7 +58,7 @@ Unter macOS und Linux den Pfad in `args` anpassen. Wer einen Login-Token nutzt, 
 
 ### ChatGPT
 
-Plugin-Paket: [pfx-proffix-chatgpt.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip)
+Plugin-Paket (aktuellste Version): [pfx-proffix-chatgpt.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip) — bei veraltetem CDN-Cache: [pfx-proffix-chatgpt-0.2.5.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt-0.2.5.zip)
 
 ## Zugangsdaten
 

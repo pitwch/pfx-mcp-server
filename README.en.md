@@ -58,7 +58,7 @@ On macOS and Linux, change the path in `args`. With a login token, leave `PROFFI
 
 ### ChatGPT
 
-Plugin package: [pfx-proffix-chatgpt.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip)
+Plugin package (latest): [pfx-proffix-chatgpt.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt.zip) — if a CDN serves an older build, use [pfx-proffix-chatgpt-0.2.5.zip](https://github.com/pitwch/pfx-mcp-server/raw/main/downloads/pfx-proffix-chatgpt-0.2.5.zip)
 
 ## Credentials
 
